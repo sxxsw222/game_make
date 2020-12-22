@@ -35,8 +35,9 @@ character_height = character_size[1]
 character_x_pos = (screen_width / 2) - (character_width / 2)
 character_y_pos = screen_height - character_height - stage_height
 
-# 캐릭터 이동 방향
-character_to_x = 0
+# 캐릭터 이동 방향(수정1)
+character_to_x_LEFT = 0
+character_to_x_RIGHT = 0
 
 #캐릭터 이동 속도
 character_speed = 5
@@ -98,23 +99,26 @@ while running:
     for event in pygame.event.get(): 
         if event.type == pygame.QUIT: 
             running = False 
-        
+        # (수정2) 키를 누를 때 LEFT, RIGHT에 따라 서로 다른 변수의 값 조정
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT: #캐릭터를 왼쪽으로
-                character_to_x -= character_speed
+                character_to_x_LEFT -= character_speed
             elif event.key == pygame.K_RIGHT:
-                character_to_x += character_speed
+                character_to_x_RIGHT += character_speed
             elif event.key == pygame.K_SPACE:
                 weapon_x_pos = character_x_pos + (character_width / 2) - (weapon_width / 2)
                 weapon_y_pos = character_y_pos
                 weapons.append([weapon_x_pos, weapon_y_pos])
-
+        # (수정3) 키에서 손을 뗄 때 LEFT, RIGHT를 각각 처리
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                character_to_x = 0
+            if event.key == pygame.K_LEFT:
+                character_to_x_LEFT = 0
+            elif event.key == pygame.K_RIGHT:
+                character_to_x_RIGHT = 0
 
     # 3. 게임 캐릭터 위치 정의
-    character_x_pos += character_to_x
+    #(수정 4) 두 변수의 값을 모두 더함
+    character_x_pos += character_to_x_LEFT + character_to_x_RIGHT
 
     if character_x_pos < 0:
         character_x_pos = 0
@@ -215,15 +219,19 @@ while running:
                         "to_x": 3, # x축 이동방향, -3이면 왼쪽으로, 3이면 오른쪽으로
                         "to_y": -6, # y축 이동방향
                         "init_spd_y": ball_speed_y[ball_img_idx + 1 ]}) #y 최초 속도
+
                 break
+        else: # [버그 수정] 계속 게임을 진행
+            continue # 안쪽 for 문 조건이 맞지 않으면 continue. 바깥 for 문 계속 수행
+        break # 안쪽 for 문에서 break를 만나면 여기로 진입. 2중 for 문을 한번에 탈출
 
     # 충돌된 공 or 무기 없애기
     if ball_to_remove > -1 :
         del balls[ball_to_remove]
         ball_to_remove = -1
 
-    if ball_to_remove > -1 :
-        del weapon[weapon_to_remove]
+    if weapon_to_remove > -1 :
+        del weapons[weapon_to_remove]
         weapon_to_remove = -1
 
     # 모든 공을 없앤 경우 게임 종료 (성공)
